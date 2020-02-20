@@ -50,4 +50,8 @@
     margin-bottom: 5px;
     padding-left: 10px;
   }
+  #app{
+    background-color: #000;
+    color: white;
+  }
 </style>

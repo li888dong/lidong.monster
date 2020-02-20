@@ -1,7 +1,7 @@
 <template>
     <div class="remote1">
         <div class="shade" v-if="!isJoin">
-
+            <div class="shade-bg"></div>
             <div class="input-container">
                 <mt-field state="success" v-model="account" placeholder="请输入你的昵称" @keyup.enter="handleKey"></mt-field>
                 <!--<input type="text" v-model="account" placeholder="请输入你的昵称" @keyup.enter="join">-->
@@ -23,7 +23,7 @@
         </div>
         <div class="video-container" v-show="isToPeer">
             <div>
-                <video src="" id="rtcA" controls autoplay></video>
+                <video src="" id="rtcA" controls autoplay muted></video>
                 <h5>{{myUsername}}</h5>
                 <button @click="hangUpCall">挂断</button>
             </div>
@@ -92,7 +92,7 @@
             // Open and configure the connection to the WebSocket server.
             connect() {
                 var serverUrl;
-                var scheme = "ws";
+                var scheme = "wss";
 
                 // If this is an HTTPS connection, we have to use a secure WebSocket
                 // connection too, so add another "s" to the scheme.
@@ -444,9 +444,12 @@
                     this.myPeerConnection.onnotificationneeded = null;
 
                     // Stop all transceivers on the connection
-                    this.myPeerConnection.getTransceivers().forEach(transceiver => {
-                        transceiver.stop();
-                    });
+                    //实测这个真的不行，兼容行
+                    // this.myPeerConnection.getTransceivers().forEach(transceiver => {
+                    //     transceiver.stop();
+                    // this.myPeerConnection.getTransceivers().forEach(transceiver => {
+                    //     transceiver.stop();
+                    // });
 
                     // Stop the webcam preview as well by pausing the <video>
                     // element, then stopping each of the getUserMedia() tracks
@@ -543,9 +546,16 @@
                     // Add the tracks from the stream to the RTCPeerConnection
 
                     try {
-                        this.webcamStream.getTracks().forEach(
-                            this.transceiver = track => this.myPeerConnection.addTransceiver(track, {streams: [this.webcamStream]})
-                        );
+                        if (this.myPeerConnection.addTrack) {
+                            this.webcamStream.getTracks().forEach(
+                                this.transceiver = track => this.myPeerConnection.addTrack(track, this.webcamStream)
+                            )
+                        }else {
+                            this.webcamStream.getTracks().forEach(
+                                this.transceiver = track => this.myPeerConnection.addTransceiver(track, {streams: [this.webcamStream]})
+                            )
+                        }
+
                     } catch (err) {
                         this.handleGetUserMediaError(err);
                     }
@@ -573,7 +583,7 @@
                 var desc = new RTCSessionDescription(msg.sdp);
 
                 // If the connection isn't stable yet, wait for it...
-
+                console.log('000,signalingState', this.myPeerConnection.signalingState);
                 if (this.myPeerConnection.signalingState != "stable") {
                     this.log("  - But the signaling state isn't stable, so triggering rollback");
 
@@ -604,9 +614,16 @@
                     // Add the camera stream to the RTCPeerConnection
 
                     try {
-                        this.webcamStream.getTracks().forEach(
-                            this.transceiver = track => this.myPeerConnection.addTransceiver(track, {streams: [this.webcamStream]})
-                        );
+                        if (this.myPeerConnection.addTrack) {
+                            this.webcamStream.getTracks().forEach(
+                                this.transceiver = track => this.myPeerConnection.addTrack(track, this.webcamStream)
+                            )
+
+                        }else {
+                            this.webcamStream.getTracks().forEach(
+                                this.transceiver = track => this.myPeerConnection.addTransceiver(track, {streams: [this.webcamStream]})
+                            )
+                        }
                     } catch (err) {
                         this.handleGetUserMediaError(err);
                     }
@@ -634,7 +651,7 @@
                 // in our "video-answer" message.
 
                 var desc = new RTCSessionDescription(msg.sdp);
-                await this.myPeerConnection.setRemoteDescription(desc).catch(reportError);
+                await this.myPeerConnection.setRemoteDescription(desc).catch(this.reportError);
             },
 
             // A new ICE candidate has been received from the other peer. Call
@@ -699,7 +716,41 @@
     }
 </script>
 <style lang="scss" scoped>
+
+
+    $circles: ();
+    $move: ();
+    $n: 8;
+
+    @function randomNum($max, $min: 0, $u: 1) {
+        @return ($min + random($max)) * $u;
+    }
+
+    @for $i from 0 through $n {
+        $start-x: randomNum(100, 1) * 1vw;
+        $start-y: randomNum(100, 1) * 1vh;
+
+        $end-x: randomNum(150, -50) * 1vw;
+        $end-y: randomNum(150, -50) * 1vh;
+
+        $circles: append(
+                        $circles,
+                        radial-gradient(
+                                        randomNum(75, 25) * 1vw,
+                                        #ddd 0%,
+                                        #666 10%,
+                                        #fff,
+                                        #000,
+                                        #999
+                        )
+                        $start-x $start-y,
+                        comma
+        );
+
+        $move: append($move, $end-x $end-y, comma);
+    }
     .remote1 {
+
         width: 100%;
         height: 100%;
         display: flex;
@@ -714,6 +765,29 @@
         top: 0;
         z-index: 100;
         background-color: rgba(0, 0, 0, 0.9);
+        .shade-bg{
+            position: absolute;
+            top:0;
+            left: 0;
+            right: 0;
+            bottom :0;
+            background: $circles;
+            animation: waveMove 15s infinite linear alternate;
+            background-blend-mode: difference;
+            filter: blur(2px) hue-rotate(0);
+
+            &::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: 0;
+                bottom: 0;
+                left: 0;
+                background: #03a9f4;
+                mix-blend-mode: color-burn;
+            }
+        }
+
         .input-container {
             position: absolute;
             left: 50%;
@@ -789,12 +863,19 @@
         button {
             background-color: brown;
         }
-        video{
+        video {
             width: 100%;
         }
         #rtcA {
             width: 100%;
             background-color: #ddd;
+        }
+    }
+
+    @keyframes waveMove {
+        100% {
+            background-position: $move;
+            filter: blur(5px) hue-rotate(30deg);
         }
     }
 </style>

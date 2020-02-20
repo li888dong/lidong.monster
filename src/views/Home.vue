@@ -1,28 +1,28 @@
 <template>
     <div class="home">
-        <a href="https://github.com/wuyawei" target="_blank" class="github-logo"></a>
-        <div class="fork-me-on-github"></div>
+
+        <logo></logo>
         <div class="center">
-            <div><router-link :to="{name: 'Speech'}">H5 语音识别</router-link></div>
-            <div><router-link :to="{name: 'communication'}">Vue 组件间通信</router-link></div>
-            <div><router-link :to="{name: 'responsive'}">Vue 响应式原理</router-link></div>
-            <div><router-link :to="{name: 'transfer'}">video 标签之间的流传输</router-link></div>
-            <div><router-link :to="{name: 'local1'}">WebRTC 1 v 1 本地对等连接</router-link></div>
             <div><router-link :to="{name: 'remote1'}">WebRTC  1 v 1 网络对等连接</router-link></div>
-            <div><router-link :to="{name: 'many'}">多人聊天</router-link></div>
-            <div><router-link :to="{name: 'whiteboard'}">白板演示</router-link></div>
-            <div><router-link :to="{name: 'palette'}">共享画板</router-link></div>
+            <div><router-link :to="{name: 'mixloading'}">mixblendloading</router-link></div>
+            <div><router-link :to="{name: 'mixloading2'}">mixblendloading2</router-link></div>
+            <div><router-link :to="{name: 'logo1'}">logo1</router-link></div>
+            <div><router-link :to="{name: 'logo2'}">logo2</router-link></div>
         </div>
     </div>
 </template>
 
 <script>
+    import logo from './wondercss/logo2'
     export default {
         name: 'home',
         data() {
             return {
                 sdata: []
             }
+        },
+        components:{
+            logo
         },
         watch: {
         },
@@ -57,7 +57,7 @@
         margin-top: 100px;
         position: relative;
         a{
-            color: #323232;
+            color: #fff;
         }
         div{
             line-height: 48px;

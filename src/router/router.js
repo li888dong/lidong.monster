@@ -8,8 +8,8 @@ export default new Router({
     routes: [
         {
             path: '/',
-            name: 'remote1',
-            component: _import('webrtc/remote1'),
+            name: 'home',
+            component: _import('Home'),
         },
         {
             path: '/room/:roomid/:account',
@@ -60,6 +60,26 @@ export default new Router({
             path: '/responsive',
             name: 'responsive',
             component: _import('responsive/responsive')
+        },
+        {
+            path:'/mixloading',
+            name:'mixloading',
+            component:_import('wondercss/MixBlendLoading')
+        },
+        {
+            path:'/mixloading2',
+            name:'mixloading2',
+            component:_import('wondercss/mixloading2')
+        },
+        {
+            path:'/logo1',
+            name:'logo1',
+            component:_import('wondercss/logo1')
+        },
+        {
+            path:'/logo2',
+            name:'logo2',
+            component:_import('wondercss/logo2')
         },
     ],
 });
