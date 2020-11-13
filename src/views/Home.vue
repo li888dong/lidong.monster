@@ -8,6 +8,8 @@
             <div><router-link :to="{name: 'mixloading2'}">mixblendloading2</router-link></div>
             <div><router-link :to="{name: 'logo1'}">logo1</router-link></div>
             <div><router-link :to="{name: 'logo2'}">logo2</router-link></div>
+            <div><router-link :to="{name: 'flyline-svg'}">flyline-svg</router-link></div>
+            <div><router-link :to="{name: 'flyline-canvas'}">flyline-canvas</router-link></div>
         </div>
     </div>
 </template>

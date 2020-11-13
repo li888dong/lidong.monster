@@ -22,6 +22,16 @@ export default new Router({
             component: _import('webrtc/many')
         },
         {
+            path: '/flyline-svg',
+            name: 'flyline-svg',
+            component: _import('flyline/flyline-svg')
+        },
+        {
+            path: '/flyline-canvas',
+            name: 'flyline-canvas',
+            component: _import('flyline/flyline-canvas')
+        },
+        {
             path: '/local1',
             name: 'local1',
             component: _import('webrtc/local1')

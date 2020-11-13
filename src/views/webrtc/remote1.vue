@@ -717,40 +717,7 @@
 </script>
 <style lang="scss" scoped>
 
-
-    $circles: ();
-    $move: ();
-    $n: 8;
-
-    @function randomNum($max, $min: 0, $u: 1) {
-        @return ($min + random($max)) * $u;
-    }
-
-    @for $i from 0 through $n {
-        $start-x: randomNum(100, 1) * 1vw;
-        $start-y: randomNum(100, 1) * 1vh;
-
-        $end-x: randomNum(150, -50) * 1vw;
-        $end-y: randomNum(150, -50) * 1vh;
-
-        $circles: append(
-                        $circles,
-                        radial-gradient(
-                                        randomNum(75, 25) * 1vw,
-                                        #ddd 0%,
-                                        #666 10%,
-                                        #fff,
-                                        #000,
-                                        #999
-                        )
-                        $start-x $start-y,
-                        comma
-        );
-
-        $move: append($move, $end-x $end-y, comma);
-    }
     .remote1 {
-
         width: 100%;
         height: 100%;
         display: flex;
@@ -771,7 +738,6 @@
             left: 0;
             right: 0;
             bottom :0;
-            background: $circles;
             animation: waveMove 15s infinite linear alternate;
             background-blend-mode: difference;
             filter: blur(2px) hue-rotate(0);
@@ -874,7 +840,6 @@
 
     @keyframes waveMove {
         100% {
-            background-position: $move;
             filter: blur(5px) hue-rotate(30deg);
         }
     }
