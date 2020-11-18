@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
+    <title>高德底图</title>
+    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css"/>
+    <style>
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
+
+        #mapContainer{
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+        }
+
+    </style>
+    <script>
+        // 接收父页面里的函数
+        window.addEventListener('message', function (e) {
+            var data = e.data;
+            var funcName = data.funcName;
+            var params = data.params;
+            if (typeof window[funcName] === 'function') window[funcName](params);
+        });
+
+        function callFuncInMain(funcName, data) {
+            var message = {
+                'funcName': funcName, // 所要调用父页面里的函数名
+                'params': data
+            }
+            // 向父窗体(用户主页面)发送消息
+            // 第一个参数是具体的信息内容，
+            // 第二个参数是接收消息的窗口的源（origin），即"协议 + 域名 + 端口"。也可以设为*，表示不限制域名，向所有窗口发送
+            window.parent.postMessage(message, '*');
+        }
+    </script>
+    <script type="text/javascript"
+            src="https://webapi.amap.com/maps?v=2.0&key=c6003c5e1932f1498bfe6612ed5c27b6&plugin=MarkerClusterer,AMap.RectangleEditor,AMap.MouseTool,AMap.CustomLayer"></script>
+    <script src="https://webapi.amap.com/ui/1.1/main.js?v=1.1.1"></script>
+    <script src="FlyLine.js"></script>
+</head>
+<body>
+<div id="mapContainer" class="map" tabindex="0"></div>
+
+<script type="text/javascript">
+    var map;
+    initMap()
+
+    function initMap() {
+        map = new AMap.Map('mapContainer', {
+            zooms: [2, 20],
+            zoom: 13, //地图显示的缩放级别范围
+            viewMode: "3D",
+            mapStyle: "amap://styles/109b8f74cd705963a1397382c22908a8", //地图主题
+            scrollWheel: true,
+            features: ['bg', 'road', 'building', 'point'],
+            dragEnable: true,
+            alwaysRender:true,
+            center:[113.537009,34.816623]
+        });
+        AMap.plugin('AMap.CustomLayer', function() {
+            // 获取 canvas 实例
+            var canvas = document.createElement('canvas');
+
+            var customLayer = new AMap.CustomLayer(canvas, {
+                zIndex: 12,
+                zooms: [3, 18] // 设置可见级别，[最小级别，最大级别]
+            });
+            var onRender = function(){
+                // 将 canvas 宽高设置为地图实例的宽高
+                canvas.width = map.getSize().width;
+                canvas.height = map.getSize().height;
+                // 创建一个自定义图层
+
+                var retina = AMap.Browser.retina;
+                var size = map.getSize();//resize
+                var width = size.width;
+                var height = size.height;
+                if(retina){//高清适配
+                    width*=2;
+                    height*=2;
+                }
+                canvas.style.width = width+'px'
+                canvas.style.height = height+'px'
+                if(retina){//高清适配
+                    width*=2;
+                    height*=2;
+                }
+                canvas.width = width;
+                canvas.height = height;//清除画布
+                var ctx = canvas.getContext("2d");
+
+                var start = map.lngLatToContainer([113.537009,34.816623]);
+                var end = map.lngLatToContainer([113.655456,34.74641]);
+                var start2 = map.lngLatToContainer([113.560355,34.749513]);
+                var end2 = map.lngLatToContainer([113.452552,34.763616]);
+                var start3 = map.lngLatToContainer([113.478644,34.793507]);
+                var end3 = map.lngLatToContainer([113.819221,34.782229]);
+                var start4 = map.lngLatToContainer([113.530314,34.827474]);
+                var end4 = map.lngLatToContainer([113.528941,34.767283]);
+                flyLine.init({
+                    canvas:canvas,
+                    ctx:ctx,
+                    points:[{
+                        start: [end.x,end.y],
+                        end: [start.x, start.y]
+                    },{
+                        start: [start2.x, start2.y],
+                        end: [end2.x,end2.y]
+                    },{
+                        start: [start3.x, start3.y],
+                        end: [end3.x,end3.y]
+                    },{
+                        start: [start4.x, start4.y],
+                        end: [end4.x,end4.y]
+                    }]
+                })
+            }
+            customLayer.render = onRender;
+            map.add(customLayer)
+
+        })
+    }
+
+
+
+
+</script>
+</body>
+</html>

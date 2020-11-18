@@ -1,7 +1,5 @@
 <template>
-    <div>
-        <canvas id="flyCanvas" ref="flyCanvas" width="500" height="500"></canvas>
-    </div>
+    <canvas id="flyCanvas" ref="flyCanvas"></canvas>
 </template>
 
 <script>
@@ -11,7 +9,11 @@
             return{
                 time:0,
                 ctx:null,
-                canvas:null
+                canvas:null,
+                point:{
+                    start:[50,50],
+                    end:[400,400]
+                }
             }
         },
         mounted() {
@@ -38,22 +40,10 @@
                 return b;
             },
             draw() {
-                let p0 = {x:100,y:100},
-                    p1 = {x:200,y:100},
-                    p2 = {x:200,y:200};
+                let p0 = {x:this.point.start[0],y:this.point.start[1]},
+                    p1 = {x:this.point.end[0],y:this.point.start[1]},
+                    p2 = {x:this.point.end[0],y:this.point.end[1]};
                 this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-                // this.ctx.save();
-                // this.ctx.strokeStyle = 'red';
-                // this.arc(this.ctx,p0,p1,p2);
-                // this.ctx.restore();
-
-                // this.ctx.save();
-                // this.ctx.strokeStyle = 'blue';
-                // this.ctx.beginPath();
-                // this.ctx.moveTo(p0.x,p0.y);
-                // this.ctx.quadraticCurveTo(p1.x, p1.y, p2.x, p2.y);
-                // this.ctx.stroke();
-                // this.ctx.restore();
 
                 this.iter(this.time,p0,p1,p2)
 
@@ -61,16 +51,19 @@
                 let pb = {};
                 pb.x = this.computeCurvePoint(p0.x,p1.x,p2.x,this.time);
                 pb.y = this.computeCurvePoint(p0.y,p1.y,p2.y,this.time);
-                this.ctx.save();
+
+
+                this.ctx.save();//保存当前环境的状态。一个保存点，restore可返回此点
                 this.ctx.lineCap = 'round';
                 this.ctx.lineWidth =3;
                 this.ctx.strokeStyle = this.createGradient(this.ctx,p0,p2);
                 this.ctx.shadowColor = 'rgba(255,0,255,1)';
-                this.ctx.shadowBlur = 5;
-                // this.arc(this.ctx,pb);
-                // this.ctx.restore();
-                this.time += 0.01;
+                this.ctx.shadowBlur = 2;
+                this.arc(this.ctx,pb);
+                this.ctx.restore();//返回save时的状态
 
+
+                this.time += 0.01;
                 if(this.time > 1){
                     this.time = 0;
                 }
@@ -79,16 +72,29 @@
             iter(t,p0,p1,p2){
                 this.ctx.beginPath();
                 this.ctx.moveTo(p0.x,p0.y);
+                // 分成100份，显示最后一分，根据二次贝塞尔曲线路径绘制
                 for(var i = 1;i < 100; i ++){
                     var tt = t/100 * i;
                     var pb = {};
                     pb.x = this.computeCurvePoint(p0.x,p1.x,p2.x,tt);
                     pb.y = this.computeCurvePoint(p0.y,p1.y,p2.y,tt);
                     this.ctx.shadowColor = 'rgba(255,0,255,1)';
+                    this.ctx.strokeStyle = this.createGradient(this.ctx,p0,p2);
+                    this.ctx.lineWidth =8;
                     this.ctx.shadowBlur = 1;
                     this.ctx.lineTo(pb.x,pb.y);
                 }
                 this.ctx.stroke();
+            },
+            // 画一条二次贝塞尔曲线
+            drawQuadraticCurve(p0,p1,p2){
+                this.ctx.save();
+                this.ctx.strokeStyle = 'blue';
+                this.ctx.beginPath();
+                this.ctx.moveTo(p0.x,p0.y);
+                this.ctx.quadraticCurveTo(p1.x, p1.y, p2.x, p2.y);
+                this.ctx.stroke();
+                this.ctx.restore();
             }
         }
     }
@@ -96,6 +102,6 @@
 
 <style scoped>
     #flyCanvas {
-        /*background-color: white;*/
+        background-color: white;
     }
 </style>
