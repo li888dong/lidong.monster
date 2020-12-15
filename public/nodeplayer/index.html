@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8"/>
+  <title>车辆实时视频</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+  <script src="./NodePlayer-full.min.js"></script>
+  <style>
+    .box {
+      display: flex;
+      margin-top: 20px;
+    }
+
+    .fl1 {
+      flex: 1;
+    }
+
+    .fl0 {
+      flex: 0;
+    }
+    .c-btn{
+      width: 50px;
+      margin: 0 3px;
+    }
+    .loading-container{
+      width: 32px;
+      height: 32px;
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%);
+      transform-origin: center center;
+      animation: rotate 1s linear infinite;
+      display: none;
+    }
+    @keyframes rotate {
+      from {
+        transform: rotate(0);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div style="max-width:716px;margin:0 auto">
+  <h3>车辆实时视频</h3>
+  <div style="width:100%; padding-bottom:75%;position:relative;">
+    <canvas id="video1" style="width:100%;height:100%;position:absolute;"></canvas>
+
+    <div class="loading-container" id="loading">
+      <svg t="1608002895488" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="1839" width="32" height="32"><path d="M538.363217 266.292938c-73.156657 0-132.69244-59.719326-132.692439-133.127149C405.670778 59.777287 465.20656 0.028981 538.363217 0.028981s132.663459 59.719326 132.663459 133.136808c0 73.407822-59.506802 133.127148-132.663459 133.127149zM255.889453 372.023773c-66.819569 0-121.206468-54.551122-121.206468-121.631517 0-67.090055 54.386898-121.641176 121.206468-121.641176 66.906511 0.086942 121.119526 54.502821 121.187147 121.641176 0 67.051414-54.367578 121.631516-121.187147 121.631517zM135.842209 647.155789C76.828077 647.097828 29.010111 599.096318 28.981131 539.879322c0.057961-59.197675 47.875927-107.170204 106.861078-107.237825 58.994811 0.077282 106.793457 48.04015 106.851417 107.237825-0.038641 59.197675-47.846946 107.189525-106.851417 107.257146v0.019321z m120.047244 272.572064c-50.03015-0.057961-90.573989-40.746703-90.62229-90.950736 0.067621-50.184713 40.59214-90.854135 90.602969-90.931417 50.03015 0.067621 90.564329 40.737043 90.631951 90.931417 0 50.136412-40.640441 90.950737-90.61263 90.950736z m282.473764 104.214185c-43.712383-0.038641-79.136318-35.588159-79.174959-79.445445 0-43.808985 35.520537-79.435784 79.174959-79.435784 43.702723 0.048301 79.116998 35.588159 79.155639 79.435784 0 43.818645-35.501217 79.445444-79.174959 79.445445h0.01932z m286.753231-134.276712c-35.279032-0.038641-63.86355-28.71976-63.902191-64.114715 0.038641-35.404615 28.623158-64.076074 63.902191-64.114714 35.269372 0.038641 63.86355 28.7101 63.90219 64.114714-0.038641 35.394955-28.632818 64.076074-63.90219 64.114715z m117.438991-296.674251c-28.941944-0.038641-52.396898-23.561216-52.435538-52.609422 0.028981-29.038546 23.483934-52.580442 52.435538-52.619083 28.941944 0.038641 52.396898 23.570876 52.4452 52.609422-0.048301 29.048207-23.503255 52.570782-52.4452 52.619083zM784.437366 254.323956a40.746703 40.746703 0 0 0 40.679082 40.833644 40.746703 40.746703 0 0 0 40.688742-40.814324 40.746703 40.746703 0 0 0-40.679082-40.823984 40.746703 40.746703 0 0 0-40.688742 40.823984v-0.01932z" fill="#23B48C" p-id="1840"></path></svg>
+    </div>
+  </div>
+  <div>
+    <div class="box" style="float: right;margin-top: 0px;">
+      <select name="url" id="url" class="">
+        <option value="">选择信道</option>
+      </select>
+      <button id="play" class="c-btn">播放</button>
+      <button id="stop" class="c-btn">停止</button>
+      <button id="capture" class="c-btn">抓拍</button>
+      <button id="full" class="c-btn">全屏</button>
+    </div>
+
+    <div class="box">
+      <div class="fl1">
+        <label>声音:</label>
+        <input type="range" onchange="volumeChange(event);">
+      </div>
+    </div>
+    <!-- /input-group -->
+  </div>
+</div>
+
+<script>
+  var url = document.getElementById("url");
+  var argurl = getQueryVariable("url");
+  var loading = document.getElementById("loading");
+  if (argurl) {
+    url.value = argurl;
+  }
+  var player;
+  NodePlayer.load(() => {
+    /**
+     * 是否打印debug信息
+     */
+    // NodePlayer.debug(true);
+
+    player = new NodePlayer();
+    /**
+     * 自动测试浏览器是否支持MSE播放，如不支持，仍然使用软解码。
+     * 紧随 new 后调用
+     * 不调用则只使用软解
+     */
+    //player.useMSE();
+
+    /**
+     * 传入 canvas视图的id，当使用mse时，自动转换为video标签
+     */
+    player.setView("video1");
+
+    /**
+     * 是否开启屏幕常亮
+     * 在手机浏览器上,canvas标签渲染视频并不会像video标签那样保持屏幕常亮
+     * 如果需要该功能, 可以调用此方法, 会有少量cpu消耗, pc浏览器不会执行
+     */
+    player.setKeepScreenOn();
+
+    /**
+     * 本例子canvas布局适合手机竖屏浏览，以拉伸填充模式缩放视频
+     */
+    player.setScaleMode(1);
+    /**
+     * 设置最大缓冲时长，单位毫秒，只在软解时有效
+     */
+    player.setBufferTime(1000);
+
+    player.on("start", () => {
+      loading.style.display = 'block'
+      console.log("player on start");
+    });
+
+    player.on("stop", () => {
+      loading.style.display = 'none'
+      console.log("player on stop");
+    });
+
+    player.on("error", (e) => {
+      console.log("player on error", e);
+    });
+
+    player.on("videoInfo", (w, h) => {
+      loading.style.display = 'none'
+      console.log("player on video info width=" + w + " height=" + h);
+    });
+
+    player.on("audioInfo", (r, c) => {
+      console.log("player on audio info samplerate=" + r + " channels=" + c);
+    });
+
+    player.on("stats", (stats) => {
+      // console.log("player on stats=", stats);
+    });
+  });
+
+  function startFunc() {
+
+    /**
+     * 开始播放,参数为 http-flv或 websocket-flv 的url
+     */
+    console.log(url)
+    player.stop();
+    player.start(url.value);
+  };
+
+  function stopFunc() {
+    /**
+     * 停止播放
+     */
+
+    player.stop();
+  };
+
+  function fullFunc() {
+    /**
+     * 全屏播放
+     */
+
+    player.fullscreen();
+  };
+  // 抓拍
+  function capture(){
+    player.screenshot(new Date().getTime(), "png", 0.8);
+  }
+
+  function volumeChange(event) {
+    /**
+     * 设置音量
+     * 0.0  ~~ 1.0
+     * 当为0.0时,完全静音, 最大1.0
+     */
+    console.log(event.target.value)
+    player.setVolume(event.target.value / 100.0);
+  };
+
+  function scaleModeChange(event) {
+    /**
+     * 视频缩放模式, 当视频分辨率比例与Canvas显示区域比例不同时,缩放效果不同:
+     *  0 视频画面完全填充canvas区域,画面会被拉伸 --- 默认值
+     *  1 视频画面做等比缩放后,对齐Canvas区域,画面不被拉伸,但有黑边
+     *  2 视频画面做等比缩放后,完全填充Canvas区域,画面不被拉伸,没有黑边,但画面显示不全
+     * 软解时有效
+     */
+    player.setScaleMode(event.target.value);
+  };
+
+  function getQueryVariable(variable) {
+    var query = window.location.search.substring(1);
+    var vars = query.split("&");
+    for (var i = 0; i < vars.length; i++) {
+      var pair = vars[i].split("=");
+      if (pair[0] == variable) {
+        return pair[1];
+      }
+    }
+    return (false);
+  }
+
+
+  var btPl = document.getElementById("play");
+  var btSt = document.getElementById("stop");
+  var btCap = document.getElementById("capture");
+  var btFu = document.getElementById("full");
+
+  if (btPl.addEventListener) {
+    btPl.addEventListener("click", startFunc, false);
+  } else if (btPl.attachEvent) {
+    btPl.attachEvent("onclick", startFunc);
+  }
+
+  if (btSt.addEventListener) {
+    btSt.addEventListener("click", stopFunc, false);
+  } else if (btSt.attachEvent) {
+    btSt.attachEvent("onclick", stopFunc);
+  }
+
+  if (btFu.addEventListener) {
+    btFu.addEventListener("click", fullFunc, false);
+  } else if (btFu.attachEvent) {
+    btFu.attachEvent("onclick", fullFunc);
+  }
+
+  if (btCap.addEventListener) {
+    btCap.addEventListener("click", capture, false);
+  } else if (btCap.attachEvent) {
+    btCap.attachEvent("onclick", capture);
+  }
+
+  var urlSelct = document.getElementById('url')
+
+  function getVideoUrl() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('get', '/api/Monitor/GetBusVideoInfo?busNo='+getQueryVariable('busNo'))
+    xhr.send();
+    xhr.onload = function () {
+      var res = JSON.parse(xhr.response)
+      if(res.succ){
+        var urlOptions = ''
+        res.videoList.forEach(function (item,idx) {
+          urlOptions+='<option value="'+item+'">信道'+(++idx)+'</option>'
+        })
+        urlSelct.innerHTML = urlOptions
+      }else {
+        alert(res.message)
+      }
+      // 处理取回的数据(在 xmlhttp.response 中找到)
+    };
+  }
+
+  getVideoUrl()
+</script>
+</body>
+
+</html>

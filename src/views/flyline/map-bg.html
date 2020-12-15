@@ -57,12 +57,12 @@
         map = new AMap.Map('mapContainer', {
             zooms: [2, 20],
             zoom: 13, //地图显示的缩放级别范围
-            viewMode: "3D",
+            viewMode: "2D",
             mapStyle: "amap://styles/109b8f74cd705963a1397382c22908a8", //地图主题
             scrollWheel: true,
             features: ['bg', 'road', 'building', 'point'],
             dragEnable: true,
-            alwaysRender:true,
+            alwaysRender: false,
             center:[113.537009,34.816623]
         });
         AMap.plugin('AMap.CustomLayer', function() {
