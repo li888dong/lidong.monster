@@ -1,0 +1,12 @@
+{
+  "name": "@tiamaes/iptalk",
+  "version": "0.0.2",
+  "description": "IP对讲",
+  "main": "lib/index.umd.js",
+  "scripts": {
+    "build": "vue-cli-service build --target lib --name index --dest lib package/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
