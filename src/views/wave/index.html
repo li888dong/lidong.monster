@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    body{
+        position: relative;
+        width:100vw;
+        height: 100vh;
+        margin: 0;
+    }
+    canvas{
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        margin-left: -150px;
+        margin-top: -150px;
+        border: 1px dashed rgba(0,0,0,0.1)
+    }
+</style>
+<body>
+<canvas id="c"></canvas>
+</body>
+<script>
+
+    var canvas = document.getElementById('c');
+    var ctx = canvas.getContext('2d');
+
+    // 初始化参数
+    let oW = 236,
+        oH = 267,
+        lineWidth = 1,
+        bOffset = 2,
+        border = 3, //X轴偏移量
+        r,
+        cR,
+        axisLength,
+        unit, // 浪宽
+        range = .3, // 浪高
+        nowrange = .3,
+        sp = 0,     // 周期偏移量
+        nowdata = 0,
+        value = 0.5, // 百分比
+        waveupsp = 0.02; // 水波上涨速度
+
+    canvas.width = oW;
+    canvas.height = oH;
+    ctx.lineWidth = lineWidth;
+    var triangleH = Math.ceil(oH/4);
+    // 外六边形
+    var arcStack = [
+        [oW/2, 0],
+        [oW-bOffset, triangleH],
+        [oW-bOffset,oH-triangleH],
+        [oW/2, oH],
+        [bOffset, oH-triangleH],
+        [bOffset, triangleH]
+    ];
+    var cStartPoint = arcStack.shift();
+    // 内六边形
+    var arcStackInner = [
+        [oW/2, border],
+        [oW-border, triangleH + border/2],
+        [oW-border, oH-triangleH-border/2],
+        [oW/2, oH-border],
+        [border, oH - triangleH - border/2],
+        [border,triangleH + border/2]
+    ];
+    var cStartPointInner = arcStackInner.shift();
+    r = oW / 2;
+    cR = oH/2 - border - lineWidth;
+
+    ctx.beginPath();
+    axisLength = oW - 2*border;
+    unit = axisLength / 20;
+    ctx.beginPath();
+    // renderBorder();
+    render();
+    function renderBorder() {
+        ctx.beginPath();
+        ctx.strokeStyle = "#000000";
+        ctx.fillStyle = "#000000";
+        ctx.moveTo(cStartPoint[0], cStartPoint[1]);
+        while (arcStack.length) {
+            var temp = arcStack.shift();
+            this.ctx.lineTo(temp[0], temp[1]);
+            ctx.stroke();
+        }
+        ctx.lineTo(cStartPoint[0], cStartPoint[1]);
+        ctx.stroke();
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+
+        ctx.beginPath();
+        ctx.fillStyle = '#fff'
+        ctx.strokeStyle = '#fff';
+        ctx.moveTo(cStartPointInner[0], cStartPointInner[1]);
+        while (arcStackInner.length) {
+            var temp = arcStackInner.shift();
+            this.ctx.lineTo(temp[0], temp[1]);
+            ctx.stroke();
+        }
+        ctx.lineTo(cStartPointInner[0], cStartPointInner[1]);
+        ctx.stroke();
+        ctx.fill();
+        ctx.restore();
+        ctx.clip();
+        ctx.save();
+        ctx.globalCompositeOperation = 'source-over';
+    }
+
+    function render() {
+        ctx.clearRect(0,0,oW,oH);
+        if (value >= 0.85) {
+            if (nowrange > range/4) {
+                var t = range * 0.01;
+                nowrange -= t;
+            }
+        } else if (value <= 0.1) {
+            if (nowrange < range*1.5) {
+                var t = range * 0.01;
+                nowrange += t;
+            }
+        } else {
+            if (nowrange <= range) {
+                var t = range * 0.01;
+                nowrange += t;
+            }
+
+            if (nowrange >= range) {
+                var t = range * 0.01;
+                nowrange -= t;
+            }
+        }
+
+        if((value - nowdata) > 0) {
+            nowdata += waveupsp;
+        }
+
+        if((value - nowdata) < 0){
+            nowdata -= waveupsp
+        }
+
+        sp += 0.07;
+        if(value){
+            drawSine();
+        }
+        requestAnimationFrame(render)
+    }
+
+    function drawSine() {
+        ctx.beginPath();
+        ctx.save();
+        var Stack = [];
+        for (let i = border; i <= border+axisLength; i+=20/axisLength) {
+            var x = sp + (border + i) / unit;
+            var y = Math.sin(x) * nowrange;
+            var dx = i;
+
+            var dy = 2*cR*(1-nowdata) + border - (unit * y);
+            ctx.lineTo(dx, dy);
+            Stack.push([dx,dy]);
+        }
+        var startP = Stack[0]
+        ctx.lineTo(border + axisLength,oH + border);
+        ctx.lineTo(border,oH+border);
+        ctx.lineTo(startP[0], startP[1])
+        ctx.fillStyle = "#50bff7";
+        ctx.fill();
+        ctx.restore();
+    }
+    function drawText() {
+        ctx.save();
+
+        var size = 0.4*cR;
+        ctx.font = size + 'px Microsoft Yahei';
+        ctx.textAlign = 'center';
+        ctx.fillStyle = "rgba(06, 85, 128, 0.5)";
+        let txt = (nowdata.toFixed(2)*100).toFixed(0) + '%';
+        ctx.fillText(txt, r, r + size / 2);
+
+        ctx.restore();
+    }
+</script>
+</html>
